@@ -9,7 +9,7 @@ import (
 )
 
 var Logger *logrus.Logger
-var Config *ini.File
+var Config *ini.Section
 
 func init() {
 	initLogger()
@@ -25,12 +25,14 @@ func loadConfig() {
 		Logger.WithFields(logrus.Fields{"file_path": filePath}).Fatal("config file not found")
 		os.Exit(1)
 	}
-	Config, err = ini.Load(filePath)
+	iniConf, err := ini.Load(filePath)
 	if err != nil {
 		Logger.WithFields(logrus.Fields{"err": err}).Fatal("load env file failed")
 		os.Exit(1)
 	}
-	Logger.WithFields(logrus.Fields{"file_path": filePath}).Info("load config file success")
+	env := getEnv("ENV", "dev")
+	Config = iniConf.Section(env)
+	Logger.WithFields(logrus.Fields{"file_path": filePath, "env": env}).Info("load config file success")
 }
 
 func initLogger() {
@@ -45,4 +47,25 @@ func fileExists(filename string) bool {
 		return false
 	}
 	return !info.IsDir()
+}
+
+func getEnv(key string, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
+
+func Val(key string) string {
+	return Config.Key(key).Value()
+}
+
+func Int(key string) int {
+	res, _ := Config.Key(key).Int()
+	return res
+}
+
+func Int64(key string) int64 {
+	res, _ := Config.Key(key).Int64()
+	return res
 }
