@@ -1,4 +1,4 @@
-module 4q4ever.com/go-modules/settings
+module github.com/shybily/go-settings
 
 go 1.12
 
